@@ -1,0 +1,102 @@
+//------------------------------------------------
+//--- 010 Editor v7.0.2 Binary Template
+//
+//      File: 
+//   Authors: 
+//   Version: 
+//   Purpose: 
+//  Category: 
+// File Mask: 
+//  ID Bytes: 
+//   History: 
+//------------------------------------------------
+
+typedef struct 
+{
+    unsigned char type;
+
+} ENTRY;
+
+void Parse()
+{
+    unsigned char type <hidden=true>;
+
+    if(type <= 0x7f)
+    {
+        FSkip(-1);
+        unsigned char fixint;
+    }
+    else if(type >= 0x80 && type <= 0x8f)
+    {
+        typedef struct
+        {
+            // fixmap
+            Printf("fixmap %d\n", type - 0x80);
+    
+            typedef struct {
+                Parse();
+            } Entry;
+    
+            typedef struct {
+                Parse();
+            } Key;
+    
+            typedef struct {
+                    Key k;
+                    Entry e;
+            } Dictionary;
+            Dictionary dict[type-0x80] <optimize=false>;
+        } FixMap;
+
+        FixMap fixmap;
+    }
+    else if(type >= 0xA0 && type <= 0xBF)
+    {
+        Printf("str %d\n", type - 0xA0);
+        struct {
+            char s[type - 0xA0];
+        } fixstr;
+    }
+    else if(type == 0xD9)
+    {
+        // str8
+        struct {
+            unsigned char strlen <hidden=true>;
+            char str[strlen];
+        } str8;
+    }
+    else if(type == 0xCB)
+    {
+        double float64;
+    }
+    else if(type == 0xCC)
+    {
+        unsigned int _uint8;
+    }
+    else if(type == 0xCD)
+    {
+        unsigned short _uint16;
+    }
+    else if(type == 0xCE)
+    {
+        unsigned int _uint32;
+    }
+    else if(type >=0x90 && type <=0x9f)
+    {
+        struct {
+            Entry e[type-0x90];
+        } fixarray;
+    }
+    else
+    {
+        Printf("Unknown type %x\n", type);
+        return;
+    }
+
+}
+
+do
+{
+    Parse();
+}
+while(!FEof());

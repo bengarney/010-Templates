@@ -1,0 +1,142 @@
+/*struct PCL_Command {
+    char escape;
+    char command;
+
+    if(command == '%')
+    {
+        char exitCmd[7];
+        
+        // Skip bytes until we get end tag.
+        FSeek(FindFirst("@PJL ENTER LANGUAGE=PCL"));
+        FSkip(24);
+    }
+    else if(command == 'E')
+    {
+        // Reset
+    }
+    else if(command == '*')
+    {
+        // Cursor command.
+        char cursorCommand;
+
+        if(cursorCommand == 'p')
+        {
+            local char arg[] = ReadString(FTell(), 5);
+            int actualArg = Atof(arg);
+        }
+        else if(cursorCommand == 'r')
+        {
+            local string arg = "";
+            local int len = 0;
+            local char argByte;
+
+            while(len < 10)
+            {
+                argByte = ReadByte();
+                if(argByte < '0' || argByte > '9')
+                    break;
+                
+                FSkip(1);
+                len++;
+            }
+
+            char postVal;
+
+            
+        }
+
+    }
+};*/
+
+int ReadNumber()
+{
+    local string arg = "";
+    local int len = 0;
+    local char argByte;
+    
+    while(len < 10)
+    {
+        argByte = ReadByte();
+        if(argByte < '0' || argByte > '9')
+            break;
+
+        arg += argByte;        
+
+        FSkip(1);
+        len++;
+    }
+
+    return Atoi(arg);
+}
+
+struct PCL_Command
+{
+    char escape <hidden=true>;
+    char command;
+
+    if(escape != 27)
+        return;    
+
+    if(command == 'E')
+        break;
+
+    if(command == '%')
+    {
+        char exitCmd[7];
+        
+        // Skip bytes until we get end tag.
+        local string target1 = "@PJL ENTER LANGUAGE=PCL";
+        local string target2 = "@PJL ENTER LANGUAGE = PCL";
+
+        local int findPos = FindFirst(target1);
+        if(findPos != -1)
+        {
+            FSeek(findPos + Strlen(target1) + 1);
+            break;
+        }
+
+        findPos = FindFirst(target2);
+        if(findPos != -1)
+        {
+            FSeek(findPos + Strlen(target2) + 1);
+            break;
+        }
+
+        if(findPos == -1)
+            return;
+
+        break;
+    }
+
+    local int argVal = 0;
+    local int safety = 10;
+    local int firstSubCommand = -1;
+    local int lastSubCommand = -1;
+
+    while(safety -- > 0)
+    {
+        if(ReadByte() == 27)
+            break;
+
+        char subCommand;
+
+        if(firstSubCommand == -1)
+            firstSubCommand = subCommand;
+        
+        if(command == '*' && subCommand == 'W')
+        {
+            FSkip(argVal);
+        }
+        else if(command == '*' && lastSubCommand == 'b' && subCommand == 'w')
+        {
+            FSkip(argVal);
+        }
+
+        argVal = ReadNumber();
+
+        lastSubCommand = subCommand;
+    }
+};
+
+while(!FEof())
+    PCL_Command cmd  <open=true>; 
